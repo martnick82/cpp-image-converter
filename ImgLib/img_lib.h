@@ -6,7 +6,9 @@
 #include <vector>
 
 namespace img_lib {
-
+    
+static const int BYTES_PER_COLOR = 3;
+    
 struct Size {
     int width;
     int height;

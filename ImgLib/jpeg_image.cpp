@@ -112,14 +112,14 @@ bool SaveJPEG(const Path& file, const Image& image) {
     * To keep things simple, we pass one scanline per call; you can pass
     * more if you wish, though.
     */
-    row_stride = image.GetWidth() * 3; /* JSAMPLEs per row in image_buffer */
+    row_stride = image.GetWidth() * BYTES_PER_COLOR; /* JSAMPLEs per row in image_buffer */
 
     while (cinfo.next_scanline < cinfo.image_height) {
     /* jpeg_write_scanlines expects an array of pointers to scanlines.
      * Here the array is only one element long, but you could pass
      * more than one scanline at a time if that's more convenient.
      */
-                std::vector<JSAMPLE> image_buffer(cinfo.image_width * 3);
+                std::vector<JSAMPLE> image_buffer(cinfo.image_width * BYTES_PER_COLOR);
         const Color* line = image.GetLine(cinfo.next_scanline);
         for (int x = 0; x < image.GetWidth(); ++x)
         {

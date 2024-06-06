@@ -9,17 +9,19 @@ using Path = std::filesystem::path;
 bool SaveBMP(const Path& file, const Image& image);
 Image LoadBMP(const Path& file);
 
+static const int BMP_STRIDE_ALIGNMENT = 4;
+
 //File header
-static const char BMP_SIG[3] = "BM";
 static const uint32_t BMP_INDENT = 54;
 static const uint32_t BMP_HEAD_PADDING = 0;
+
 //Info header
 static const uint32_t BMP_INFO_HEAD_INDENT = 40;
 static const uint16_t BMP_PLANE_COUNT = 1;
 static const uint16_t BMP_COLOR_DEPTH = 24;
 static const uint32_t BMP_COMPRESS_DEPTH = 0;
-static const int32_t BMP_H_RES = 11811;
-static const int32_t BMP_V_RES = 11811;
+static const int32_t BMP_H_RES = 11811; // 300DPI
+static const int32_t BMP_V_RES = 11811; // 300DPI
 static const int32_t BMP_NUM_USING_COLORS = 0; //undefined
 static const int32_t BMP_NUM_SIGNIFICANT_COLORS = 0x1000000;
 

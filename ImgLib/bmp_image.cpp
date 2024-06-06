@@ -11,7 +11,9 @@ namespace img_lib {
 
 // функция вычисления отступа по ширине
 static int GetBMPStride(int w) {
-    return 4 * ((w * 3 + 3) / 4);
+    //ЗАМЕЧАНИЕ: Лучше количество цветов и выравнивание стоит вынести в именованные переменные или константы для читаемости
+    //Пояснение: Согласен, так лучше. Ввёл константы в ImgLib и bmp_image
+    return BMP_STRIDE_ALIGNMENT * ((w * BYTES_PER_COLOR + BMP_STRIDE_ALIGNMENT - 1) / BMP_STRIDE_ALIGNMENT);
 }
 PACKED_STRUCT_BEGIN BitmapFileHeader{
     char sign1;
@@ -60,7 +62,6 @@ bool CheckInfoHeader(const BitmapInfoHeader& header)
     return true;
 }
 
-// напишите эту функцию
 bool SaveBMP(const Path& file, const Image& image)
 {
     ofstream out(file, ios::binary);
@@ -80,6 +81,10 @@ bool SaveBMP(const Path& file, const Image& image)
     };
 
     out.write((char*) & file_header, sizeof(file_header));
+    if (!out.good())
+    {
+        return false;
+    }
 
     BitmapInfoHeader info_header = {
                         BMP_INFO_HEAD_INDENT,
@@ -96,6 +101,10 @@ bool SaveBMP(const Path& file, const Image& image)
     };
 
     out.write((char*)&info_header, sizeof(info_header));
+    if (!out.good())
+    {
+        return false;
+    }
 
     std::vector<char> buff(step);
 
@@ -103,25 +112,32 @@ bool SaveBMP(const Path& file, const Image& image)
         const Color* line = image.GetLine(y);
 
         for (int x = 0; x < w; ++x) {
-            buff[x * 3 + 0] = (static_cast<char>((line + x)->b));
-            buff[x * 3 + 1] = (static_cast<char>((line + x)->g));
-            buff[x * 3 + 2] = (static_cast<char>((line + x)->r));
-            //out <<  << static_cast<char>((line + x)->g) << static_cast<char>((line + x)->r);
+            buff[x * BYTES_PER_COLOR + 0] = (static_cast<char>((line + x)->b));
+            buff[x * BYTES_PER_COLOR + 1] = (static_cast<char>((line + x)->g));
+            buff[x * BYTES_PER_COLOR + 2] = (static_cast<char>((line + x)->r));
         }
         out.write(buff.data(), step);
+        if (!out.good())
+        {
+            return false;
+        }
     }
     return true;
+    // ЗАМЕЧАНИЕ: И с чего это так ? У вас вообще запись может провалиться, в таком случае - вам надо проверить 
+    // состояние потока и вернуть false
+    // Пояснение: Тут и сказать нечего. Ввёл проверки потоков после операций чтения/записи
 }
 
-// напишите эту функцию
 Image LoadBMP(const Path& file)
 {
-    // открываем поток с флагом ios::binary
-    // поскольку будем читать данные в двоичном формате
     ifstream ifs(file, ios::binary);
 
     BitmapFileHeader file_header;
     ifs.read((char*)&file_header, sizeof(file_header));
+    if (!ifs.good())
+    {
+        return {};
+    }
     if (!CheckFileHeader(file_header))
     {
         return {};
@@ -133,26 +149,35 @@ Image LoadBMP(const Path& file)
     {
         return {};
     }
+
     int32_t w = info_header.width;
     int32_t h = info_header.height;
-
-    uint16_t planes;
 
     int step = GetBMPStride(w);
 
     Image result(w, h, Color::Black());
-    std::vector<char> buff(w * 3);
+    std::vector<char> buff(w * BYTES_PER_COLOR);
 
     for (int y = h - 1; y >= 0; --y) {
         Color* line = result.GetLine(y);
-        ifs.read(buff.data(), w*3);
-
-        for (int x = 0; x < w; ++x) {
-            line[x].b = static_cast<byte>(buff[x * 3 + 0]);
-            line[x].g = static_cast<byte>(buff[x * 3 + 1]);
-            line[x].r = static_cast<byte>(buff[x * 3 + 2]);
+        // ЗАМЕЧАНИЕ: Здесь и ниже не хватает проверки состояния потока - чтение может проваливаться
+        //  и это через методы стоит проверять.
+        // Пояснение: сделал проверки после чтения
+        ifs.read(buff.data(), w * BYTES_PER_COLOR);
+        if (!ifs.good())
+        {
+            return {};
         }
-        ifs.read(buff.data(), step - w*3);
+        for (int x = 0; x < w; ++x) {
+            line[x].b = static_cast<byte>(buff[x * BYTES_PER_COLOR + 0]);
+            line[x].g = static_cast<byte>(buff[x * BYTES_PER_COLOR + 1]);
+            line[x].r = static_cast<byte>(buff[x * BYTES_PER_COLOR + 2]);
+        }
+        ifs.read(buff.data(), step - w * BYTES_PER_COLOR);
+        if (!ifs.good())
+        {
+            return {};
+        }
     }
     ifs.close();
     return result;
