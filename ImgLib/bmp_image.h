@@ -10,7 +10,6 @@ bool SaveBMP(const Path& file, const Image& image);
 Image LoadBMP(const Path& file);
 
 //File header
-static const char BMP_SIG[3] = "BM";
 static const uint32_t BMP_INDENT = 54;
 static const uint32_t BMP_HEAD_PADDING = 0;
 //Info header
