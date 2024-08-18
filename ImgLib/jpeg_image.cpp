@@ -29,8 +29,7 @@ my_error_exit (j_common_ptr cinfo) {
 }
 
 // В эту функцию вставлен код примера из библиотеки libjpeg.
-// Измените его, чтобы адаптировать к переменным file и image.
-// Задание качества уберите - будет использовано качество по умолчанию
+
 bool SaveJPEG(const Path& file, const Image& image) {
     /* This struct contains the JPEG compression parameters and pointers to
     * working space (which is allocated as needed by the JPEG library).
@@ -124,11 +123,6 @@ bool SaveJPEG(const Path& file, const Image& image) {
         for (int x = 0; x < image.GetWidth(); ++x)
         {
             int index = x * 3;
-/*
-            image_buffer[index + 0] = static_cast<JSAMPLE>((line + x)->r);
-            image_buffer[index + 1] = static_cast<JSAMPLE>((line + x)->g);
-            image_buffer[index + 2] = static_cast<JSAMPLE>((line + x)->b);
-*/
             image_buffer[index + 0] = static_cast<JSAMPLE>((line + x)->r);
             image_buffer[index + 1] = static_cast<JSAMPLE>((line + x)->g);
             image_buffer[index + 2] = static_cast<JSAMPLE>((line + x)->b);
@@ -171,10 +165,6 @@ Image LoadJPEG(const Path& file) {
     JSAMPARRAY buffer;
     int row_stride;
 
-    // Тут не избежать функции открытия файла из языка C,
-    // поэтому приходится использовать конвертацию пути к string.
-    // Под Visual Studio это может быть опасно, и нужно применить
-    // нестандартную функцию _wfopen
 #ifdef _MSC_VER
     if ((infile = _wfopen(file.wstring().c_str(), "rb")) == NULL) {
 #else
