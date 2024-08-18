@@ -11,8 +11,6 @@ namespace img_lib {
 
 // функция вычисления отступа по ширине
 static int GetBMPStride(int w) {
-    //ЗАМЕЧАНИЕ: Лучше количество цветов и выравнивание стоит вынести в именованные переменные или константы для читаемости
-    //Пояснение: Согласен, так лучше. Ввёл константы в ImgLib и bmp_image
     return BMP_STRIDE_ALIGNMENT * ((w * BYTES_PER_COLOR + BMP_STRIDE_ALIGNMENT - 1) / BMP_STRIDE_ALIGNMENT);
 }
 PACKED_STRUCT_BEGIN BitmapFileHeader{
@@ -123,9 +121,6 @@ bool SaveBMP(const Path& file, const Image& image)
         }
     }
     return true;
-    // ЗАМЕЧАНИЕ: И с чего это так ? У вас вообще запись может провалиться, в таком случае - вам надо проверить 
-    // состояние потока и вернуть false
-    // Пояснение: Тут и сказать нечего. Ввёл проверки потоков после операций чтения/записи
 }
 
 Image LoadBMP(const Path& file)
@@ -160,9 +155,6 @@ Image LoadBMP(const Path& file)
 
     for (int y = h - 1; y >= 0; --y) {
         Color* line = result.GetLine(y);
-        // ЗАМЕЧАНИЕ: Здесь и ниже не хватает проверки состояния потока - чтение может проваливаться
-        //  и это через методы стоит проверять.
-        // Пояснение: сделал проверки после чтения
         ifs.read(buff.data(), w * BYTES_PER_COLOR);
         if (!ifs.good())
         {
